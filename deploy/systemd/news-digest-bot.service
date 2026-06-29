@@ -1,0 +1,24 @@
+[Unit]
+Description=News Digest Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/news-digest-bot
+EnvironmentFile=/opt/news-digest-bot/.env
+ExecStart=/opt/news-digest-bot/.venv/bin/news-digest bot
+Restart=always
+RestartSec=10
+User=newsdigest
+Group=newsdigest
+
+# Basic hardening. Keep ReadWritePaths aligned with DATABASE_PATH and data/digests.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/news-digest-bot/data
+
+[Install]
+WantedBy=multi-user.target

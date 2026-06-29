@@ -1,0 +1,136 @@
+# News Digest Bot
+
+Small Python bot for two daily outputs:
+
+1. General news-background digest from Telegram channels and Reddit.
+2. LinkedIn-ready post candidates with sources and draft text.
+
+Current scope:
+
+- Telegram channels: supported via Telethon user session.
+- Reddit: supported via PRAW read-only API, currently disabled in `config/sources.yaml` until credentials are added.
+- X/Twitter: intentionally stubbed for later `twscrape` integration.
+- LLM: DeepSeek OpenAI-compatible Chat Completions API.
+- Delivery: Telegram Bot API.
+
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+cp .env.example .env
+cp config/sources.example.yaml config/sources.yaml
+```
+
+Fill `.env` with API keys and `config/sources.yaml` with channels/subreddits.
+
+## Configure Sources
+
+Edit `config/sources.yaml`:
+
+```yaml
+telegram:
+  channels:
+    - name: Example AI Channel
+      handle: example_ai_channel
+      enabled: true
+
+reddit:
+  subreddits:
+    - name: LocalLLaMA
+      enabled: true
+
+twitter:
+  enabled: false
+  accounts: []
+  searches: []
+```
+
+Telegram handles can be written as `channel_name` or `@channel_name`.
+
+## Commands
+
+Dry-run with sample items, no external APIs:
+
+```bash
+news-digest dry-run
+```
+
+Without installing the package, use:
+
+```bash
+PYTHONPATH=src python -m news_digest_bot.cli dry-run
+```
+
+Collect real data into local SQLite cache:
+
+```bash
+news-digest collect --print-count
+```
+
+Generate a specific digest mode from cached data:
+
+```bash
+news-digest run --mode general_news --no-send
+news-digest run --mode linkedin_ideas --no-send
+news-digest run --mode projects_radar --no-send
+news-digest run --mode meme_radar --no-send
+news-digest run --mode best_of --no-send
+```
+
+Refresh cache and send a digest plus Markdown file to Telegram:
+
+```bash
+news-digest run --mode general_news --refresh --send
+```
+
+Every non-dry run also saves the generated digest as Markdown:
+
+```text
+data/digests/digest-YYYY-MM-DD-HHMMSS.md
+```
+
+Run the interactive Telegram bot with inline buttons:
+
+```bash
+news-digest bot
+```
+
+Available modes:
+
+- `general_news` — general AI/tech news background.
+- `linkedin_ideas` — post ideas prioritizing papers, projects, tools, books, and insights.
+- `projects_radar` — papers/projects/tools radar.
+- `meme_radar` — memes, jokes, and cultural signals.
+- `best_of` — 5-7 most valuable links.
+
+First Telethon run may ask for a phone/code and creates a local session file.
+
+For daily VPS execution, run the installed command from cron, for example:
+
+```cron
+0 9 * * * cd /path/to/horizon && /path/to/horizon/.venv/bin/news-digest run --send
+```
+
+## Tests
+
+```bash
+pytest
+```
+
+## Production
+
+Validate local config:
+
+```bash
+news-digest doctor
+```
+
+See `docs/PRODUCTION.md` and `deploy/systemd/` for VPS deployment with systemd.
+
+## Notes
+
+- The Telegram Bot API cannot read public channels. Reading is done through Telethon as a user session; sending is done by the bot token.
+- Keep `data/`, `.env`, and `*.session` files private.
+- X/Twitter is not implemented yet because unofficial scraping is fragile. The code has a collector boundary so it can be added later.

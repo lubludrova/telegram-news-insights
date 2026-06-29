@@ -1,0 +1,130 @@
+telegram:
+  channels:
+    - name: cgevent
+      handle: cgevent
+      enabled: true
+    - name: seeallochnaya
+      handle: seeallochnaya
+      enabled: true
+    - name: sb_ai_lab
+      handle: sb_ai_lab
+      enabled: true
+    - name: YSDA_YR_2019
+      handle: YSDA_YR_2019
+      enabled: true
+    - name: aioftheday
+      handle: aioftheday
+      enabled: true
+    - name: tsymbalove
+      handle: tsymbalove
+      enabled: true
+    - name: cryptoEssay
+      handle: cryptoEssay
+      enabled: true
+    - name: techno_yandex
+      handle: techno_yandex
+      enabled: true
+    - name: NeuralShit
+      handle: NeuralShit
+      enabled: true
+    - name: tech_priestess
+      handle: tech_priestess
+      enabled: true
+    - name: lovedeathtransformers
+      handle: lovedeathtransformers
+      enabled: true
+    - name: gonzo_ML
+      handle: gonzo_ML
+      enabled: true
+    - name: nadlskom
+      handle: nadlskom
+      enabled: true
+    - name: oulenspiegel_channel
+      handle: oulenspiegel_channel
+      enabled: true
+    - name: denissexy
+      handle: denissexy
+      enabled: true
+    - name: techsparks
+      handle: techsparks
+      enabled: true
+    - name: ai_newz
+      handle: ai_newz
+      enabled: true
+    - name: onigiriScience
+      handle: onigiriScience
+      enabled: true
+    - name: whatsupxufana
+      handle: whatsupxufana
+      enabled: true
+    - name: ppilif_chanel
+      handle: ppilif_chanel
+      enabled: true
+    - name: repushko_channel
+      handle: repushko_channel
+      enabled: true
+    - name: quant_prune_distill
+      handle: quant_prune_distill
+      enabled: true
+    - name: complete_ai
+      handle: complete_ai
+      enabled: true
+    - name: dl_stories
+      handle: dl_stories
+      enabled: true
+    - name: dmitry_trofimov_dpeople
+      handle: dmitry_trofimov_dpeople
+      enabled: true
+    - name: bminaiev_blog
+      handle: bminaiev_blog
+      enabled: true
+    - name: addmeto
+      handle: addmeto
+      enabled: true
+    - name: Marat_AI
+      handle: Marat_AI
+      enabled: true
+    - name: dev_connectablejobs
+      handle: dev_connectablejobs
+      enabled: true
+    - name: daily10
+      handle: daily10
+      enabled: true
+    - name: MLunderhood
+      handle: MLunderhood
+      enabled: true
+    - name: seniorvibe
+      handle: seniorvibe
+      enabled: true
+    - name: adel_and_ml
+      handle: adel_and_ml
+      enabled: true
+
+reddit:
+  subreddits:
+    - name: ArtificialInteligence
+      enabled: false
+    - name: MemeEconomy
+      enabled: false
+    - name: dankmemes
+      enabled: false
+    - name: agi
+      enabled: false
+    - name: artificial
+      enabled: false
+    - name: MachineLearning
+      enabled: false
+    - name: reinforcementlearning
+      enabled: false
+    - name: deeplearning
+      enabled: false
+    - name: OpenSourceeAI
+      enabled: false
+    - name: learnmachinelearning
+      enabled: false
+
+twitter:
+  # Reserved for future twscrape integration.
+  enabled: false
+  accounts: []
+  searches: []

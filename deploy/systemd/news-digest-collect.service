@@ -1,0 +1,18 @@
+[Unit]
+Description=News Digest Collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/news-digest-bot
+EnvironmentFile=/opt/news-digest-bot/.env
+ExecStart=/opt/news-digest-bot/.venv/bin/news-digest collect --print-count
+User=newsdigest
+Group=newsdigest
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/news-digest-bot/data

@@ -1,0 +1,17 @@
+telegram:
+  channels:
+    - name: Example AI Channel
+      handle: example_ai_channel
+      enabled: false
+
+reddit:
+  subreddits:
+    - name: LocalLLaMA
+      enabled: false
+    - name: MachineLearning
+      enabled: false
+
+twitter:
+  enabled: false
+  accounts: []
+  searches: []
