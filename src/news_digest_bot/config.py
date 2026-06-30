@@ -50,6 +50,7 @@ class Settings:
     telegram_session: str
     telegram_bot_token: str
     telegram_chat_id: str
+    telegram_channel_id: str
     reddit_client_id: str
     reddit_client_secret: str
     reddit_user_agent: str
@@ -70,6 +71,7 @@ def load_settings(env_path: str | Path = ".env") -> Settings:
         telegram_session=os.getenv("TELEGRAM_SESSION", "news_digest_reader"),
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
         telegram_chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
+        telegram_channel_id=os.getenv("TELEGRAM_CHANNEL_ID", ""),
         reddit_client_id=os.getenv("REDDIT_CLIENT_ID", ""),
         reddit_client_secret=os.getenv("REDDIT_CLIENT_SECRET", ""),
         reddit_user_agent=os.getenv("REDDIT_USER_AGENT", "news-digest-bot/0.1"),

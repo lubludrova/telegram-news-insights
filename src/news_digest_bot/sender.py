@@ -14,14 +14,15 @@ def send_telegram_message(
     parse_mode: str | None = None,
     disable_preview: bool = True,
 ) -> None:
-    if not settings.telegram_bot_token or not settings.telegram_chat_id:
-        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required for sending")
+    chat_id = daily_destination_chat_id(settings)
+    if not settings.telegram_bot_token or not chat_id:
+        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID or TELEGRAM_CHANNEL_ID are required for sending")
 
     url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
     with httpx.Client(timeout=30) as client:
         for chunk in split_message(text):
             payload = {
-                "chat_id": settings.telegram_chat_id,
+                "chat_id": chat_id,
                 "text": chunk,
                 "disable_web_page_preview": disable_preview,
             }
@@ -32,15 +33,16 @@ def send_telegram_message(
 
 
 def send_telegram_document(settings: Settings, path: str, caption: str | None = None) -> None:
-    if not settings.telegram_bot_token or not settings.telegram_chat_id:
-        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required for sending")
+    chat_id = daily_destination_chat_id(settings)
+    if not settings.telegram_bot_token or not chat_id:
+        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID or TELEGRAM_CHANNEL_ID are required for sending")
 
     url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendDocument"
     with httpx.Client(timeout=60) as client:
         with open(path, "rb") as file:
             response = client.post(
                 url,
-                data={"chat_id": settings.telegram_chat_id, "caption": caption or ""},
+                data={"chat_id": chat_id, "caption": caption or ""},
                 files={"document": file},
             )
             response.raise_for_status()
@@ -112,3 +114,7 @@ def split_message(text: str, limit: int = MAX_TELEGRAM_LENGTH) -> list[str]:
     if remaining:
         chunks.append(remaining)
     return chunks
+
+
+def daily_destination_chat_id(settings: Settings) -> str:
+    return settings.telegram_channel_id.strip() or settings.telegram_chat_id.strip()
