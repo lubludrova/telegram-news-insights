@@ -6,7 +6,7 @@ from news_digest_bot.modes import DigestMode, get_mode
 from news_digest_bot.models import NewsItem
 
 
-SYSTEM_PROMPT = get_mode("general_news").system_prompt
+SYSTEM_PROMPT = get_mode("daily_news").system_prompt
 
 
 def build_digest_prompt(items: list[NewsItem], now: datetime) -> str:

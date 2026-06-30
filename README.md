@@ -72,6 +72,7 @@ news-digest collect --print-count
 Generate a specific digest mode from cached data:
 
 ```bash
+news-digest run --mode daily_news --no-send
 news-digest run --mode general_news --no-send
 news-digest run --mode linkedin_ideas --no-send
 news-digest run --mode projects_radar --no-send
@@ -79,10 +80,10 @@ news-digest run --mode meme_radar --no-send
 news-digest run --mode best_of --no-send
 ```
 
-Refresh cache and send a digest plus Markdown file to Telegram:
+Refresh cache and send the daily 24-hour digest to Telegram:
 
 ```bash
-news-digest run --mode general_news --refresh --send
+news-digest run --mode daily_news --refresh --send
 ```
 
 Every non-dry run also saves the generated digest as Markdown:
@@ -99,6 +100,7 @@ news-digest bot
 
 Available modes:
 
+- `daily_news` — daily 24-hour report with every news item scored by importance, classified, and attributed to its source/channel.
 - `general_news` — general AI/tech news background.
 - `linkedin_ideas` — post ideas prioritizing papers, projects, tools, books, and insights.
 - `projects_radar` — papers/projects/tools radar.
@@ -107,10 +109,10 @@ Available modes:
 
 First Telethon run may ask for a phone/code and creates a local session file.
 
-For daily VPS execution, run the installed command from cron, for example:
+For daily VPS execution, the systemd timer runs this command at 12:00 Moscow time:
 
-```cron
-0 9 * * * cd /path/to/horizon && /path/to/horizon/.venv/bin/news-digest run --send
+```bash
+news-digest run --mode daily_news --refresh --send
 ```
 
 ## Tests

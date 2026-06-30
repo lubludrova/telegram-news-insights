@@ -5,8 +5,8 @@ import time
 import httpx
 
 from news_digest_bot.config import Settings, SourceConfig
-from news_digest_bot.modes import MODES, get_mode
-from news_digest_bot.pipeline import collect_items, generate_mode_report, recent_image_map
+from news_digest_bot.modes import DEFAULT_MODE, MODES
+from news_digest_bot.pipeline import collect_source_items, generate_mode_report, recent_image_map
 from news_digest_bot.sender import answer_callback, send_bot_message
 from news_digest_bot.telegram_format import markdown_to_telegram_html
 from news_digest_bot.telegraph import publish_digest
@@ -30,16 +30,8 @@ def main_menu_markup() -> dict:
     return {
         "inline_keyboard": [
             [
-                {"text": MODES["general_news"].label, "callback_data": "mode:general_news"},
-                {"text": MODES["best_of"].label, "callback_data": "mode:best_of"},
-            ],
-            [
-                {"text": MODES["linkedin_ideas"].label, "callback_data": "mode:linkedin_ideas"},
-                {"text": MODES["projects_radar"].label, "callback_data": "mode:projects_radar"},
-            ],
-            [
-                {"text": MODES["meme_radar"].label, "callback_data": "mode:meme_radar"},
-                {"text": "🔄 Обновить кэш", "callback_data": "collect"},
+                {"text": "Telegram fetch", "callback_data": "fetch:telegram"},
+                {"text": "Reddit fetch", "callback_data": "fetch:reddit"},
             ],
         ]
     }
@@ -68,12 +60,15 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
         chat_id = message["chat"]["id"]
         text = message.get("text", "")
         if text.startswith("/start") or text.startswith("/menu"):
-            send_bot_message(settings, chat_id, "Выбери режим дайджеста:", main_menu_markup())
-        elif text.startswith("/collect"):
-            count = collect_items(settings, sources)
-            send_bot_message(settings, chat_id, f"Кэш обновлён. Новых items: {count}", main_menu_markup())
+            send_bot_message(settings, chat_id, "Выбери источник для обновления кэша:", main_menu_markup())
+        elif text.startswith("/telegram_fetch"):
+            count = collect_source_items(settings, sources, "telegram")
+            send_bot_message(settings, chat_id, f"Telegram cache updated. New items: {count}", main_menu_markup())
+        elif text.startswith("/reddit_fetch"):
+            count = collect_source_items(settings, sources, "reddit")
+            send_bot_message(settings, chat_id, f"Reddit cache updated. New items: {count}", main_menu_markup())
         else:
-            send_bot_message(settings, chat_id, "Пока поддерживаю кнопки. Нажми /start.", main_menu_markup())
+            send_bot_message(settings, chat_id, "Пока поддерживаю fetch-кнопки. Нажми /start.", main_menu_markup())
         return
 
     if "callback_query" not in update:
@@ -85,15 +80,15 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
         return
     data = callback.get("data", "")
     answer_callback(settings, callback["id"])
-    if data == "collect":
-        count = collect_items(settings, sources)
-        send_bot_message(settings, chat_id, f"Кэш обновлён. Новых items: {count}", main_menu_markup())
+    if data.startswith("fetch:"):
+        source = data.split(":", 1)[1]
+        count = collect_source_items(settings, sources, source)
+        send_bot_message(settings, chat_id, f"{source.title()} cache updated. New items: {count}", main_menu_markup())
         return
-    if data.startswith("mode:"):
-        mode_key = data.split(":", 1)[1]
-        mode = get_mode(mode_key)
+    if data == "daily_news":
+        mode = MODES[DEFAULT_MODE]
         send_bot_message(settings, chat_id, f"Генерирую: {mode.label}. Это может занять до минуты.")
-        digest = generate_mode_report(settings, sources, mode_key=mode_key, refresh=False)
+        digest = generate_mode_report(settings, sources, mode_key=DEFAULT_MODE, refresh=True)
         try:
             link = publish_digest(settings, mode.label, digest, recent_image_map(settings))
             send_bot_message(settings, chat_id, f"{mode.label}\n{link}", main_menu_markup(), disable_preview=False)

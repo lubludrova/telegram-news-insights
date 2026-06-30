@@ -22,6 +22,8 @@ sudo systemctl enable --now news-digest-collect.timer
 sudo systemctl enable --now news-digest-bot.service
 ```
 
+The timer sends the daily 24-hour report at 12:00 Moscow time.
+
 Check status:
 
 ```bash

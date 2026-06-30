@@ -16,8 +16,50 @@ Every substantial item must include a separate source line in this exact form:
 Источник: <URL>
 Do not invent facts that are not present in the source items."""
 
+DAILY_CLASSIFICATION = """Use exactly one category for every news item:
+- Research/Paper: papers, experiments, benchmarks, research claims.
+- Model/Release: new models, datasets, checkpoints, APIs, product releases.
+- Tooling/Engineering: libraries, GitHub repos, infra, agents, evals, MLOps, developer tools.
+- Business/Market: funding, pricing, partnerships, company strategy, hardware supply, cloud market.
+- Safety/Policy: regulation, lawsuits, safety incidents, security, copyright, privacy.
+- Education/Event: courses, conferences, meetups, hiring programs, academic programs.
+- Culture/Meme: memes, community jokes, social signals, AI media/culture.
+- Jobs/Ads: vacancies, sponsored posts, obvious ads.
+- Other: only if none of the above fits."""
+
 
 MODES: dict[str, DigestMode] = {
+    "daily_news": DigestMode(
+        key="daily_news",
+        label="Daily News",
+        file_prefix="daily-news",
+        system_prompt=f"""You are a strict AI/tech news editor.
+{BASE_RULES}
+The input contains all collected items from the last 24 hours. Evaluate every non-duplicate news item; do not collapse unrelated items into themes. Sort by importance descending. Keep the whole report compact enough for one Telegram message when possible.
+
+Importance scoring:
+- 10: field-changing result, major model/release, critical regulation/security/business impact.
+- 7-9: important technical or market development worth reading today.
+- 4-6: useful but incremental update, local event, niche tool, weak signal.
+- 1-3: low-signal, ad, vacancy, meme, minor personal/community update.
+
+Classification:
+{DAILY_CLASSIFICATION}
+
+Output structure:
+# Daily AI/Tech News
+For each item use this exact Markdown block:
+## <short title>
+Важность: <1-10>/10
+Класс: <one category from the list>
+Источник: <URL>
+Канал/сабреддит: <source platform> / <source name>
+Дата: <source timestamp if available>
+Кратко: <1-2 sentences summarizing only source-grounded facts>
+Почему важно: <one concise sentence>
+
+If an item is an ad or vacancy, still include it with low importance and class Jobs/Ads.""",
+    ),
     "general_news": DigestMode(
         key="general_news",
         label="📰 Общий фон",
@@ -82,7 +124,7 @@ For each pick include: category, one-paragraph summary, why it is worth opening,
 }
 
 
-DEFAULT_MODE = "general_news"
+DEFAULT_MODE = "daily_news"
 
 
 def get_mode(key: str) -> DigestMode:

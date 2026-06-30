@@ -44,6 +44,18 @@ def collect_items(settings: Settings, sources: SourceConfig, now: datetime | Non
     return ItemStore(settings.database_path).upsert_items(items)
 
 
+def collect_source_items(settings: Settings, sources: SourceConfig, source: str, now: datetime | None = None) -> int:
+    now = now or datetime.now(timezone.utc)
+    since = now - timedelta(hours=settings.lookback_hours)
+    if source == "telegram":
+        items = asyncio.run(collect_telegram(settings, sources.telegram_channels, since))
+    elif source == "reddit":
+        items = collect_reddit(settings, sources.reddit_subreddits, since)
+    else:
+        raise ValueError(f"Unknown source: {source}")
+    return ItemStore(settings.database_path).upsert_items(dedupe_items(items))
+
+
 def recent_cached_items(settings: Settings, now: datetime | None = None) -> list[NewsItem]:
     now = now or datetime.now(timezone.utc)
     since = now - timedelta(hours=settings.lookback_hours)

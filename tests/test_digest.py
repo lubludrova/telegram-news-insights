@@ -27,3 +27,4 @@ def test_build_digest_prompt_contains_required_source_context() -> None:
 def test_system_prompt_requires_markdown_and_source_lines() -> None:
     assert "Return valid Markdown" in SYSTEM_PROMPT
     assert "Источник: <URL>" in SYSTEM_PROMPT
+    assert "Важность: <1-10>/10" in SYSTEM_PROMPT

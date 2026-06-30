@@ -1,9 +1,8 @@
 [Unit]
-Description=Run News Digest Collector Every 30 Minutes
+Description=Run News Digest Daily Report at 12:00 Moscow Time
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=30min
+OnCalendar=*-*-* 09:00:00 UTC
 Unit=news-digest-collect.service
 Persistent=true
 

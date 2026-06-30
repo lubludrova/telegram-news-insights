@@ -78,7 +78,7 @@ chmod 600 .env
 ```bash
 .venv/bin/news-digest doctor
 .venv/bin/news-digest collect --print-count
-.venv/bin/news-digest run --mode best_of --no-send
+.venv/bin/news-digest run --mode daily_news --dry-llm --no-send
 ```
 
 ## 4. Install systemd Units
@@ -106,16 +106,16 @@ Restart bot:
 sudo systemctl restart news-digest-bot.service
 ```
 
-Run collector manually:
+Run source collection manually:
 
 ```bash
 sudo -u newsdigest /opt/news-digest-bot/.venv/bin/news-digest collect --print-count
 ```
 
-Generate and send a report manually:
+Generate and send the daily 24-hour report manually:
 
 ```bash
-sudo -u newsdigest /opt/news-digest-bot/.venv/bin/news-digest run --mode general_news --send
+sudo -u newsdigest /opt/news-digest-bot/.venv/bin/news-digest run --mode daily_news --refresh --send
 ```
 
 ## 6. Update

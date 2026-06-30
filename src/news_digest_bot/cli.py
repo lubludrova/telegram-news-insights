@@ -72,11 +72,14 @@ def main() -> None:
 
     digest = generate_mode_report(settings, sources, mode_key=args.mode, dry_run=args.dry_llm, refresh=args.refresh)
     if args.send:
-        try:
-            link = publish_digest(settings, MODES[args.mode].label, digest, recent_image_map(settings))
-            send_telegram_message(settings, f"{MODES[args.mode].label}\n{link}", disable_preview=False)
-        except (httpx.HTTPError, RuntimeError):
-            send_telegram_message(settings, markdown_to_telegram_html(digest), parse_mode="HTML")
+        if args.mode == "daily_news":
+            send_telegram_message(settings, digest)
+        else:
+            try:
+                link = publish_digest(settings, MODES[args.mode].label, digest, recent_image_map(settings))
+                send_telegram_message(settings, f"{MODES[args.mode].label}\n{link}", disable_preview=False)
+            except (httpx.HTTPError, RuntimeError):
+                send_telegram_message(settings, markdown_to_telegram_html(digest), parse_mode="HTML")
     else:
         print(digest)
 
