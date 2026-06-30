@@ -35,7 +35,7 @@ MODES: dict[str, DigestMode] = {
         file_prefix="daily-news",
         system_prompt=f"""You are a strict AI/tech news editor.
 {BASE_RULES}
-The input contains all collected items from the last 24 hours. Evaluate every non-duplicate news item; do not collapse unrelated items into themes. Sort by importance descending. Keep the whole report compact enough for one Telegram message when possible.
+The input contains all collected items from the last 24 hours. Evaluate every non-duplicate news item; do not collapse unrelated items into themes. Sort by importance descending. Keep the whole report compact enough for Telegraph.
 
 Importance scoring:
 - 10: field-changing result, major model/release, critical regulation/security/business impact.
@@ -48,6 +48,9 @@ Classification:
 
 Output structure:
 # Daily AI/Tech News
+
+## Основные новости
+Include regular news, research, releases, tools, policy, market, education, and culture items here. Do not include pure vacancies or hackathon announcements in this section unless they are strategically important industry news.
 For each item use this exact Markdown block:
 ## <short title>
 Важность: <1-10>/10
@@ -58,7 +61,11 @@ For each item use this exact Markdown block:
 Кратко: <1-2 sentences summarizing only source-grounded facts>
 Почему важно: <one concise sentence>
 
-If an item is an ad or vacancy, still include it with low importance and class Jobs/Ads.""",
+## Вакансии и хакатоны
+Put all relevant vacancies, internships, hiring posts, hackathons, contests, grants, and application deadlines here at the end. Keep this rubric short and practical. Use this compact format for every item:
+- <Вакансия/Хакатон/Конкурс>: <short title> — <who it is for / deadline or location if present>. Источник: <URL>. Канал/сабреддит: <source platform> / <source name>.
+
+If there are no relevant vacancies or hackathons, write exactly: Нет релевантных вакансий и хакатонов за период.""",
     ),
     "general_news": DigestMode(
         key="general_news",

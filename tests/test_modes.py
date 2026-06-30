@@ -17,6 +17,9 @@ def test_daily_news_mode_requires_classification_and_importance() -> None:
     assert "Важность: <1-10>/10" in prompt
     assert "Класс: <one category from the list>" in prompt
     assert "Канал/сабреддит" in prompt
+    assert "## Основные новости" in prompt
+    assert "## Вакансии и хакатоны" in prompt
+    assert "Do not include pure vacancies or hackathon announcements" in prompt
 
 
 def test_get_mode_rejects_unknown_mode() -> None:
