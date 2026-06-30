@@ -64,7 +64,7 @@ def load_settings(env_path: str | Path = ".env") -> Settings:
     return Settings(
         deepseek_api_key=os.getenv("DEEPSEEK_API_KEY", ""),
         deepseek_base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
-        deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
+        deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro"),
         telegram_api_id=_optional_int(os.getenv("TELEGRAM_API_ID", "")),
         telegram_api_hash=os.getenv("TELEGRAM_API_HASH", ""),
         telegram_session=os.getenv("TELEGRAM_SESSION", "news_digest_reader"),
