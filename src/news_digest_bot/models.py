@@ -13,6 +13,7 @@ class NewsItem:
     text: str
     url: str | None
     created_at: datetime
+    image_url: str | None = None
 
     @property
     def dedupe_key(self) -> str:

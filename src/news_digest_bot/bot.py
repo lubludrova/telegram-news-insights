@@ -6,8 +6,10 @@ import httpx
 
 from news_digest_bot.config import Settings, SourceConfig
 from news_digest_bot.modes import MODES, get_mode
-from news_digest_bot.pipeline import collect_items, generate_mode_report
-from news_digest_bot.sender import answer_callback, send_bot_document, send_bot_message
+from news_digest_bot.pipeline import collect_items, generate_mode_report, recent_image_map
+from news_digest_bot.sender import answer_callback, send_bot_message
+from news_digest_bot.telegram_format import markdown_to_telegram_html
+from news_digest_bot.telegraph import publish_digest
 
 
 def run_bot(settings: Settings, sources: SourceConfig, poll_interval: float = 2.0) -> None:
@@ -51,8 +53,17 @@ def _get_updates(settings: Settings, offset: int) -> list[dict]:
     return response.json().get("result", [])
 
 
+def _is_authorized_chat(settings: Settings, chat_id: int | str | None) -> bool:
+    allowed = settings.telegram_chat_id.strip()
+    if not allowed:
+        return True
+    return str(chat_id) == allowed
+
+
 def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> None:
     if "message" in update:
+        if not _is_authorized_chat(settings, update["message"]["chat"]["id"]):
+            return
         message = update["message"]
         chat_id = message["chat"]["id"]
         text = message.get("text", "")
@@ -70,6 +81,8 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
 
     callback = update["callback_query"]
     chat_id = callback["message"]["chat"]["id"]
+    if not _is_authorized_chat(settings, chat_id):
+        return
     data = callback.get("data", "")
     answer_callback(settings, callback["id"])
     if data == "collect":
@@ -80,7 +93,9 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
         mode_key = data.split(":", 1)[1]
         mode = get_mode(mode_key)
         send_bot_message(settings, chat_id, f"Генерирую: {mode.label}. Это может занять до минуты.")
-        digest, path = generate_mode_report(settings, sources, mode_key=mode_key, refresh=False)
-        send_bot_message(settings, chat_id, digest, main_menu_markup())
-        if path:
-            send_bot_document(settings, chat_id, path, caption=f"Markdown: {mode.label}")
+        digest = generate_mode_report(settings, sources, mode_key=mode_key, refresh=False)
+        try:
+            link = publish_digest(settings, mode.label, digest, recent_image_map(settings))
+            send_bot_message(settings, chat_id, f"{mode.label}\n{link}", main_menu_markup(), disable_preview=False)
+        except (httpx.HTTPError, RuntimeError):
+            send_bot_message(settings, chat_id, markdown_to_telegram_html(digest), main_menu_markup(), parse_mode="HTML")

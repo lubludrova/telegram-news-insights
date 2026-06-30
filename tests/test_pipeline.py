@@ -66,8 +66,7 @@ def test_generate_mode_report_reads_cached_items_in_dry_run(tmp_path) -> None:
         ]
     )
 
-    result, path = generate_mode_report(settings, sources, mode_key="linkedin_ideas", dry_run=True)
+    result = generate_mode_report(settings, sources, mode_key="linkedin_ideas", dry_run=True)
 
-    assert path is None
     assert "LinkedIn-worthy ideas" in result
     assert "Cool GitHub project" in result

@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import argparse
 
+import httpx
+
 from news_digest_bot.config import load_settings, load_sources
 from news_digest_bot.bot import run_bot
 from news_digest_bot.modes import DEFAULT_MODE, MODES
-from news_digest_bot.pipeline import collect_items, generate_mode_report, run_pipeline
-from news_digest_bot.sender import send_telegram_document, send_telegram_message
+from news_digest_bot.pipeline import collect_items, generate_mode_report, recent_image_map, run_pipeline
+from news_digest_bot.sender import send_telegram_message
 from news_digest_bot.telegram_addlist import fetch_addlist_chats_sync, render_sources_yaml
+from news_digest_bot.telegram_format import markdown_to_telegram_html
+from news_digest_bot.telegraph import publish_digest
 from news_digest_bot.doctor import format_doctor_result, run_doctor
 
 
@@ -66,11 +70,13 @@ def main() -> None:
         run_bot(settings, sources)
         return
 
-    digest, path = generate_mode_report(settings, sources, mode_key=args.mode, dry_run=args.dry_llm, refresh=args.refresh)
+    digest = generate_mode_report(settings, sources, mode_key=args.mode, dry_run=args.dry_llm, refresh=args.refresh)
     if args.send:
-        send_telegram_message(settings, digest)
-        if path:
-            send_telegram_document(settings, path, caption=f"Markdown digest: {args.mode}")
+        try:
+            link = publish_digest(settings, MODES[args.mode].label, digest, recent_image_map(settings))
+            send_telegram_message(settings, f"{MODES[args.mode].label}\n{link}", disable_preview=False)
+        except (httpx.HTTPError, RuntimeError):
+            send_telegram_message(settings, markdown_to_telegram_html(digest), parse_mode="HTML")
     else:
         print(digest)
 

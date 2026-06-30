@@ -58,8 +58,8 @@ class ItemStore:
                 cursor = conn.execute(
                     """
                     insert or ignore into raw_items(
-                        dedupe_key, source, source_name, external_id, title, text, url, created_at
-                    ) values (?, ?, ?, ?, ?, ?, ?, ?)
+                        dedupe_key, source, source_name, external_id, title, text, url, created_at, image_url
+                    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         item.dedupe_key,
@@ -70,6 +70,7 @@ class ItemStore:
                         item.text,
                         item.url,
                         item.created_at.isoformat(),
+                        item.image_url,
                     ),
                 )
                 changed += cursor.rowcount
@@ -79,7 +80,7 @@ class ItemStore:
         with sqlite3.connect(self.path) as conn:
             rows = conn.execute(
                 """
-                select source, source_name, external_id, title, text, url, created_at
+                select source, source_name, external_id, title, text, url, created_at, image_url
                 from raw_items
                 where created_at >= ?
                 order by created_at desc
@@ -96,6 +97,7 @@ class ItemStore:
                 text=row[4],
                 url=row[5],
                 created_at=_parse_datetime(row[6]),
+                image_url=row[7],
             )
             for row in rows
         ]
@@ -113,10 +115,14 @@ class ItemStore:
                     text text not null,
                     url text,
                     created_at text not null,
+                    image_url text,
                     inserted_at text not null default current_timestamp
                 )
                 """
             )
+            columns = {row[1] for row in conn.execute("pragma table_info(raw_items)")}
+            if "image_url" not in columns:
+                conn.execute("alter table raw_items add column image_url text")
             conn.execute("create index if not exists idx_raw_items_created_at on raw_items(created_at)")
 
 

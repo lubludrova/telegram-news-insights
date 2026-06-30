@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 
 import httpx
@@ -96,9 +97,30 @@ def parse_public_channel_html(channel: TelegramChannel, html: str, since: dateti
                 text=text,
                 url=url,
                 created_at=created_at,
+                image_url=_extract_image(post),
             )
         )
     return items
+
+
+_BG_IMAGE_RE = re.compile(r"background-image:\s*url\('([^']+)'\)")
+
+
+def _extract_image(post) -> str | None:
+    for selector in (
+        ".tgme_widget_message_photo_wrap",
+        ".tgme_widget_message_link_preview .link_preview_image",
+        "i.link_preview_image",
+        "i.tgme_widget_message_video_thumb",
+        ".tgme_widget_message_video_thumb",
+    ):
+        node = post.select_one(selector)
+        if not node:
+            continue
+        match = _BG_IMAGE_RE.search(node.get("style", "") or "")
+        if match:
+            return match.group(1)
+    return None
 
 
 def _first_line(text: str) -> str:
