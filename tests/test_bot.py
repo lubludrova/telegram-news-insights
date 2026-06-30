@@ -1,8 +1,8 @@
 from dataclasses import replace
 from datetime import datetime, timezone
 
-from news_digest_bot.bot import _is_authorized_chat, _send_latest_daily_report, main_menu_markup
-from news_digest_bot.config import load_settings
+from news_digest_bot.bot import _format_sources, _is_authorized_chat, _send_latest_daily_report, main_menu_markup
+from news_digest_bot.config import RedditSubreddit, SourceConfig, TelegramChannel, TwitterConfig, load_settings
 from news_digest_bot.report import save_latest_markdown_digest
 
 
@@ -27,7 +27,34 @@ def test_main_menu_markup_contains_digest_callbacks() -> None:
     buttons = [button for row in markup["inline_keyboard"] for button in row]
     callbacks = {button["callback_data"] for button in buttons}
 
-    assert callbacks == {"fetch:telegram", "fetch:reddit"}
+    assert callbacks == {"fetch:telegram", "fetch:reddit", "sources"}
+
+
+def test_format_sources_lists_telegram_and_reddit_sources() -> None:
+    sources = SourceConfig(
+        telegram_channels=(TelegramChannel("AI News", "ai_news"), TelegramChannel("ML", "@ml")),
+        reddit_subreddits=(RedditSubreddit("LocalLLaMA"),),
+        twitter=TwitterConfig(False, (), ()),
+    )
+
+    out = _format_sources(sources)
+
+    assert "Telegram (2):" in out
+    assert "AI News: @ai_news" in out
+    assert "ML: @ml" in out
+    assert "Reddit (1):" in out
+    assert "r/LocalLLaMA" in out
+
+
+def test_format_sources_handles_empty_sources() -> None:
+    sources = SourceConfig(telegram_channels=(), reddit_subreddits=(), twitter=TwitterConfig(False, (), ()))
+
+    out = _format_sources(sources)
+
+    assert "Telegram (0):" in out
+    assert "нет включённых каналов" in out
+    assert "Reddit (0):" in out
+    assert "нет включённых сабреддитов" in out
 
 
 def test_send_latest_daily_report_sends_saved_file(tmp_path, monkeypatch) -> None:

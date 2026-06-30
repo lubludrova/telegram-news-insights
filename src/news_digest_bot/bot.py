@@ -31,6 +31,9 @@ def main_menu_markup() -> dict:
                 {"text": "Telegram fetch", "callback_data": "fetch:telegram"},
                 {"text": "Reddit fetch", "callback_data": "fetch:reddit"},
             ],
+            [
+                {"text": "Sources", "callback_data": "sources"},
+            ],
         ]
     }
 
@@ -63,6 +66,8 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
             _send_latest_daily_report(settings, chat_id, "Telegram fetch")
         elif text.startswith("/reddit_fetch"):
             _send_latest_daily_report(settings, chat_id, "Reddit fetch")
+        elif text.startswith("/sources"):
+            send_bot_message(settings, chat_id, _format_sources(sources), main_menu_markup())
         else:
             send_bot_message(settings, chat_id, "Пока поддерживаю отправку сохранённого отчёта. Нажми /start.", main_menu_markup())
         return
@@ -80,6 +85,27 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
         source = data.split(":", 1)[1]
         _send_latest_daily_report(settings, chat_id, f"{source.title()} fetch")
         return
+    if data == "sources":
+        send_bot_message(settings, chat_id, _format_sources(sources), main_menu_markup())
+        return
+
+
+def _format_sources(sources: SourceConfig) -> str:
+    lines = ["Используемые источники:", "", f"Telegram ({len(sources.telegram_channels)}):"]
+    if sources.telegram_channels:
+        for channel in sources.telegram_channels:
+            handle = channel.handle if channel.handle.startswith("@") else f"@{channel.handle}"
+            lines.append(f"- {channel.name}: {handle}")
+    else:
+        lines.append("- нет включённых каналов")
+
+    lines.extend(["", f"Reddit ({len(sources.reddit_subreddits)}):"])
+    if sources.reddit_subreddits:
+        for subreddit in sources.reddit_subreddits:
+            lines.append(f"- r/{subreddit.name}")
+    else:
+        lines.append("- нет включённых сабреддитов")
+    return "\n".join(lines)
 
 
 def _send_latest_daily_report(settings: Settings, chat_id: int | str, label: str) -> None:
