@@ -115,7 +115,7 @@ def _send_latest_daily_report(settings: Settings, chat_id: int | str, label: str
         send_bot_message(
             settings,
             chat_id,
-            "Нет Telegraph daily report за последние 24 часа. Новый отчёт генерируется автоматически в 12:00 МСК.",
+            "Нет Telegraph daily report за последние 24 часа. Новый отчёт генерируется автоматически в 08:30 МСК.",
             main_menu_markup(),
         )
         return

@@ -111,7 +111,7 @@ Available modes:
 
 First Telethon run may ask for a phone/code and creates a local session file.
 
-For daily VPS execution, the systemd timer runs this command at 12:00 Moscow time:
+For daily VPS execution, the systemd timer runs this command at 08:30 Moscow time:
 
 ```bash
 news-digest run --mode daily_news --refresh --send

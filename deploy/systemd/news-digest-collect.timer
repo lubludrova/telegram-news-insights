@@ -1,8 +1,8 @@
 [Unit]
-Description=Run News Digest Daily Report at 12:00 Moscow Time
+Description=Run News Digest Daily Report at 08:30 Moscow Time
 
 [Timer]
-OnCalendar=*-*-* 09:00:00 UTC
+OnCalendar=*-*-* 05:30:00 UTC
 Unit=news-digest-collect.service
 Persistent=true
 
