@@ -10,7 +10,7 @@ from news_digest_bot.digest import build_digest_prompt, dedupe_items, format_dry
 from news_digest_bot.llm import generate_digest, generate_mode_digest
 from news_digest_bot.modes import DEFAULT_MODE, get_mode
 from news_digest_bot.models import NewsItem
-from news_digest_bot.report import save_markdown_digest
+from news_digest_bot.report import save_latest_markdown_digest, save_markdown_digest
 from news_digest_bot.storage import ItemStore, SeenStore
 from news_digest_bot.telegraph import normalize_url
 
@@ -103,7 +103,10 @@ def generate_mode_report(
             items = recent_cached_items(settings, now=now)
     if dry_run:
         return format_dry_mode_digest(items, now, mode)
-    return generate_mode_digest(settings, mode, build_digest_prompt(items, now))
+    digest = generate_mode_digest(settings, mode, build_digest_prompt(items, now))
+    if mode.key == DEFAULT_MODE:
+        save_latest_markdown_digest(digest, now, settings.database_path.parent / "digests", mode.file_prefix)
+    return digest
 
 
 def collect_all(settings: Settings, sources: SourceConfig, since: datetime) -> list[NewsItem]:

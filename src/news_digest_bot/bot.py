@@ -6,10 +6,8 @@ import httpx
 
 from news_digest_bot.config import Settings, SourceConfig
 from news_digest_bot.modes import DEFAULT_MODE, MODES
-from news_digest_bot.pipeline import collect_source_items, generate_mode_report, recent_image_map
-from news_digest_bot.sender import answer_callback, send_bot_message
-from news_digest_bot.telegram_format import markdown_to_telegram_html
-from news_digest_bot.telegraph import publish_digest
+from news_digest_bot.report import latest_markdown_digest
+from news_digest_bot.sender import answer_callback, send_bot_document, send_bot_message
 
 
 def run_bot(settings: Settings, sources: SourceConfig, poll_interval: float = 2.0) -> None:
@@ -60,15 +58,13 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
         chat_id = message["chat"]["id"]
         text = message.get("text", "")
         if text.startswith("/start") or text.startswith("/menu"):
-            send_bot_message(settings, chat_id, "Выбери источник для обновления кэша:", main_menu_markup())
+            send_bot_message(settings, chat_id, "Выбери сохранённый daily report:", main_menu_markup())
         elif text.startswith("/telegram_fetch"):
-            count = collect_source_items(settings, sources, "telegram")
-            send_bot_message(settings, chat_id, f"Telegram cache updated. New items: {count}", main_menu_markup())
+            _send_latest_daily_report(settings, chat_id, "Telegram fetch")
         elif text.startswith("/reddit_fetch"):
-            count = collect_source_items(settings, sources, "reddit")
-            send_bot_message(settings, chat_id, f"Reddit cache updated. New items: {count}", main_menu_markup())
+            _send_latest_daily_report(settings, chat_id, "Reddit fetch")
         else:
-            send_bot_message(settings, chat_id, "Пока поддерживаю fetch-кнопки. Нажми /start.", main_menu_markup())
+            send_bot_message(settings, chat_id, "Пока поддерживаю отправку сохранённого отчёта. Нажми /start.", main_menu_markup())
         return
 
     if "callback_query" not in update:
@@ -82,15 +78,19 @@ def _handle_update(settings: Settings, sources: SourceConfig, update: dict) -> N
     answer_callback(settings, callback["id"])
     if data.startswith("fetch:"):
         source = data.split(":", 1)[1]
-        count = collect_source_items(settings, sources, source)
-        send_bot_message(settings, chat_id, f"{source.title()} cache updated. New items: {count}", main_menu_markup())
+        _send_latest_daily_report(settings, chat_id, f"{source.title()} fetch")
         return
-    if data == "daily_news":
-        mode = MODES[DEFAULT_MODE]
-        send_bot_message(settings, chat_id, f"Генерирую: {mode.label}. Это может занять до минуты.")
-        digest = generate_mode_report(settings, sources, mode_key=DEFAULT_MODE, refresh=True)
-        try:
-            link = publish_digest(settings, mode.label, digest, recent_image_map(settings))
-            send_bot_message(settings, chat_id, f"{mode.label}\n{link}", main_menu_markup(), disable_preview=False)
-        except (httpx.HTTPError, RuntimeError):
-            send_bot_message(settings, chat_id, markdown_to_telegram_html(digest), main_menu_markup(), parse_mode="HTML")
+
+
+def _send_latest_daily_report(settings: Settings, chat_id: int | str, label: str) -> None:
+    mode = MODES[DEFAULT_MODE]
+    path = latest_markdown_digest(settings.database_path.parent / "digests", mode.file_prefix, max_age_hours=24)
+    if path is None:
+        send_bot_message(
+            settings,
+            chat_id,
+            "Нет daily report за последние 24 часа. Новый отчёт генерируется автоматически в 12:00 МСК.",
+            main_menu_markup(),
+        )
+        return
+    send_bot_document(settings, chat_id, str(path), caption=f"{label}: latest daily report")

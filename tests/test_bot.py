@@ -1,7 +1,9 @@
 from dataclasses import replace
+from datetime import datetime, timezone
 
-from news_digest_bot.bot import _is_authorized_chat, main_menu_markup
+from news_digest_bot.bot import _is_authorized_chat, _send_latest_daily_report, main_menu_markup
 from news_digest_bot.config import load_settings
+from news_digest_bot.report import save_latest_markdown_digest
 
 
 def _settings_with_chat(chat_id: str):
@@ -26,3 +28,33 @@ def test_main_menu_markup_contains_digest_callbacks() -> None:
     callbacks = {button["callback_data"] for button in buttons}
 
     assert callbacks == {"fetch:telegram", "fetch:reddit"}
+
+
+def test_send_latest_daily_report_sends_saved_file(tmp_path, monkeypatch) -> None:
+    settings = replace(load_settings(), database_path=tmp_path / "news.sqlite3")
+    _, latest = save_latest_markdown_digest(
+        "# Daily",
+        datetime.now(timezone.utc),
+        tmp_path / "digests",
+        "daily-news",
+    )
+    calls = []
+
+    monkeypatch.setattr("news_digest_bot.bot.send_bot_document", lambda *args, **kwargs: calls.append(args))
+
+    _send_latest_daily_report(settings, 123, "Telegram fetch")
+
+    assert calls[0][0] == settings
+    assert calls[0][1] == 123
+    assert calls[0][2] == str(latest)
+
+
+def test_send_latest_daily_report_does_not_generate_when_missing(tmp_path, monkeypatch) -> None:
+    settings = replace(load_settings(), database_path=tmp_path / "news.sqlite3")
+    messages = []
+
+    monkeypatch.setattr("news_digest_bot.bot.send_bot_message", lambda *args, **kwargs: messages.append(args))
+
+    _send_latest_daily_report(settings, 123, "Telegram fetch")
+
+    assert "Нет daily report" in messages[0][2]

@@ -118,6 +118,8 @@ Generate and send the daily 24-hour report manually:
 sudo -u newsdigest /opt/news-digest-bot/.venv/bin/news-digest run --mode daily_news --refresh --send
 ```
 
+The generated report is also saved as `data/digests/daily-news-latest.md`. Bot buttons resend this file while it is younger than 24 hours; they do not trigger a new source fetch or LLM generation.
+
 ## 6. Update
 
 ```bash
