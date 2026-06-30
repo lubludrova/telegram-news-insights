@@ -6,8 +6,8 @@ import httpx
 
 from news_digest_bot.config import Settings, SourceConfig
 from news_digest_bot.modes import DEFAULT_MODE, MODES
-from news_digest_bot.report import latest_markdown_digest
-from news_digest_bot.sender import answer_callback, send_bot_document, send_bot_message
+from news_digest_bot.report import latest_link
+from news_digest_bot.sender import answer_callback, send_bot_message
 
 
 def run_bot(settings: Settings, sources: SourceConfig, poll_interval: float = 2.0) -> None:
@@ -110,13 +110,13 @@ def _format_sources(sources: SourceConfig) -> str:
 
 def _send_latest_daily_report(settings: Settings, chat_id: int | str, label: str) -> None:
     mode = MODES[DEFAULT_MODE]
-    path = latest_markdown_digest(settings.database_path.parent / "digests", mode.file_prefix, max_age_hours=24)
-    if path is None:
+    link = latest_link(settings.database_path.parent / "digests", mode.file_prefix, max_age_hours=24)
+    if link is None:
         send_bot_message(
             settings,
             chat_id,
-            "Нет daily report за последние 24 часа. Новый отчёт генерируется автоматически в 12:00 МСК.",
+            "Нет Telegraph daily report за последние 24 часа. Новый отчёт генерируется автоматически в 12:00 МСК.",
             main_menu_markup(),
         )
         return
-    send_bot_document(settings, chat_id, str(path), caption=f"{label}: latest daily report")
+    send_bot_message(settings, chat_id, f"{label}: latest daily report\n{link}", main_menu_markup(), disable_preview=False)

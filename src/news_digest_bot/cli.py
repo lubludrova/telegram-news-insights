@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 
 import httpx
 
@@ -8,6 +9,7 @@ from news_digest_bot.config import load_settings, load_sources
 from news_digest_bot.bot import run_bot
 from news_digest_bot.modes import DEFAULT_MODE, MODES
 from news_digest_bot.pipeline import collect_items, generate_mode_report, recent_image_map, run_pipeline
+from news_digest_bot.report import save_latest_link
 from news_digest_bot.sender import send_telegram_message
 from news_digest_bot.telegram_addlist import fetch_addlist_chats_sync, render_sources_yaml
 from news_digest_bot.telegram_format import markdown_to_telegram_html
@@ -73,7 +75,9 @@ def main() -> None:
     digest = generate_mode_report(settings, sources, mode_key=args.mode, dry_run=args.dry_llm, refresh=args.refresh)
     if args.send:
         if args.mode == "daily_news":
-            send_telegram_message(settings, digest)
+            link = publish_digest(settings, MODES[args.mode].label, digest, recent_image_map(settings))
+            save_latest_link(link, datetime.now(timezone.utc), settings.database_path.parent / "digests", MODES[args.mode].file_prefix)
+            send_telegram_message(settings, f"{MODES[args.mode].label}\n{link}", disable_preview=False)
         else:
             try:
                 link = publish_digest(settings, MODES[args.mode].label, digest, recent_image_map(settings))

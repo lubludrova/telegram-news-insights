@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from news_digest_bot.report import latest_markdown_digest, save_latest_markdown_digest, save_markdown_digest
+from news_digest_bot.report import latest_link, latest_markdown_digest, save_latest_link, save_latest_markdown_digest, save_markdown_digest
 
 
 def test_save_markdown_digest_writes_timestamped_file(tmp_path) -> None:
@@ -42,3 +42,20 @@ def test_latest_markdown_digest_returns_fresh_file(tmp_path) -> None:
     )
 
     assert latest_markdown_digest(tmp_path, "daily-news", now=datetime.now(timezone.utc)) == latest
+
+
+def test_save_latest_link_writes_latest_url(tmp_path) -> None:
+    path = save_latest_link("https://telegra.ph/test", datetime.now(timezone.utc), tmp_path, "daily-news")
+
+    assert path.name == "daily-news-latest.url"
+    assert path.read_text(encoding="utf-8") == "https://telegra.ph/test\n"
+
+
+def test_latest_link_returns_fresh_url(tmp_path) -> None:
+    save_latest_link("https://telegra.ph/test", datetime.now(timezone.utc), tmp_path, "daily-news")
+
+    assert latest_link(tmp_path, "daily-news", now=datetime.now(timezone.utc)) == "https://telegra.ph/test"
+
+
+def test_latest_link_returns_none_when_missing(tmp_path) -> None:
+    assert latest_link(tmp_path, "daily-news") is None
